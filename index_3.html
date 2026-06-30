@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Finder 70.33 — Schede cliente</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f0f4f8; color: #1a2234; font-size: 14px; }
+  .app { max-width: 480px; margin: 0 auto; min-height: 100vh; }
+
+  .header { background: #1a2234; color: white; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .header-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .header-text { min-width: 0; }
+  .header-title { font-size: 15px; font-weight: 700; white-space: nowrap; }
+  .header-sub { font-size: 10.5px; color: #7a90b0; margin-top: 1px; }
+  .btn-new { background: #2f7ef5; color: white; border: none; border-radius: 8px; padding: 8px 14px; font-size: 13px; font-weight: 600; cursor: pointer; flex-shrink: 0; }
+  .btn-new:hover { background: #1d6de8; }
+
+  .sync-bar { padding: 6px 12px; font-size: 10.5px; text-align: center; font-weight: 600; }
+  .sync-ok { background: #e0f5ea; color: #1a8a44; }
+  .sync-off { background: #fff3e0; color: #c76a00; }
+
+  .search-bar { padding: 12px; background: white; border-bottom: 1px solid #e8edf5; }
+  .search-bar input { width: 100%; border: 1px solid #dde4ee; border-radius: 8px; padding: 8px 12px; font-size: 13px; outline: none; }
+  .search-bar input:focus { border-color: #2f7ef5; }
+
+  .card-list { padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+  .card-item { background: white; border: 1px solid #e2e8f4; border-radius: 12px; padding: 14px; cursor: pointer; transition: all .15s; }
+  .card-item:hover { border-color: #2f7ef5; box-shadow: 0 2px 8px rgba(47,126,245,.1); }
+  .card-item-top { display: flex; justify-content: space-between; align-items: flex-start; }
+  .card-nome { font-weight: 700; font-size: 15px; color: #1a2234; }
+  .card-sub { font-size: 11px; color: #7a90b0; margin-top: 2px; }
+  .card-tipo { font-size: 11px; color: #a0afc5; margin-top: 1px; }
+  .card-agente { font-size: 11px; color: #2f7ef5; font-weight: 600; margin-top: 1px; }
+  .card-badges { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+  .badge { font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 20px; white-space: nowrap; }
+  .card-azione { margin-top: 8px; font-size: 12px; color: #2f7ef5; font-weight: 500; }
+  .empty-state { text-align: center; padding: 60px 20px; color: #a0afc5; font-size: 14px; }
+
+  .s-gray{background:#f0f2f5;color:#6b7a96} .s-blue{background:#e0ecff;color:#2f7ef5}
+  .s-slate{background:#edf0f5;color:#6b7a96} .s-yellow{background:#fff8e0;color:#b07d00}
+  .s-orange{background:#fff3e0;color:#c76a00} .s-green{background:#e0f5ea;color:#1a8a44}
+  .s-red{background:#ffe0e0;color:#c43030} .s-purple{background:#f0e0ff;color:#7a30c4}
+  .s-cyan{background:#e0f5ff;color:#007aaa} .s-amber{background:#fff5cc;color:#997700}
+  .p-alta{color:#e03030;font-size:11px;font-weight:700}
+  .p-media{color:#e07a00;font-size:11px;font-weight:600}
+  .p-bassa{color:#1a8a44;font-size:11px;font-weight:600}
+
+  .form-header { background: #1a2234; color: white; padding: 14px 16px; display: flex; align-items: center; gap: 12px; }
+  .btn-back { background: none; border: none; color: #7ab0ff; font-size: 13px; font-weight: 600; cursor: pointer; padding: 0; }
+  .form-title { flex: 1; font-weight: 700; font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  .form-body { padding: 14px; }
+  .section-title { font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: #2f7ef5; border-bottom: 1px solid #dde9ff; padding-bottom: 6px; margin: 18px 0 12px; }
+
+  .field { margin-bottom: 12px; }
+  .field label { display: block; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: #7a90b0; margin-bottom: 5px; }
+  .field input, .field select, .field textarea { width: 100%; border: 1px solid #dde4ee; border-radius: 8px; padding: 9px 12px; font-size: 13px; color: #1a2234; outline: none; font-family: inherit; appearance: none; background: white; }
+  .field select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237a90b0' stroke-width='1.5' fill='none'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; }
+  .field input:focus, .field select:focus, .field textarea:focus { border-color: #2f7ef5; box-shadow: 0 0 0 3px rgba(47,126,245,.1); }
+  .field textarea { resize: none; line-height: 1.5; }
+  .field-static { background: #f5f7fa; border: 1px solid #e2e8f4; border-radius: 8px; padding: 9px 12px; font-size: 13px; font-weight: 600; color: #4a6080; }
+
+  .multisel { display: flex; flex-wrap: wrap; gap: 6px; }
+  .multisel-btn { font-size: 11px; padding: 5px 10px; border-radius: 20px; border: 1px solid #dde4ee; background: white; color: #6b7a96; cursor: pointer; transition: all .12s; font-family: inherit; }
+  .multisel-btn.on { background: #2f7ef5; color: white; border-color: #2f7ef5; }
+  .multisel-btn:hover:not(.on) { border-color: #2f7ef5; color: #2f7ef5; }
+
+  .toggle-more { width: 100%; background: #eef3fc; color: #2f7ef5; border: 1px dashed #b8d0f5; border-radius: 10px; padding: 11px; font-size: 12.5px; font-weight: 700; cursor: pointer; margin: 4px 0 14px; }
+  .toggle-more:hover { background: #e0ecff; }
+  .more-fields { display: none; }
+  .more-fields.open { display: block; }
+
+  .storico-box { background: #fffbf0; border: 1px solid #f0d080; border-radius: 10px; padding: 12px; margin-bottom: 12px; }
+  .storico-box-title { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .05em; color: #b07d00; margin-bottom: 10px; }
+  .storico-box .field { margin-bottom: 8px; }
+  .storico-box .field input, .storico-box .field select { background: white; font-size: 12px; }
+
+  .storico-entry { background: #f5f7fa; border: 1px solid #e2e8f4; border-radius: 8px; padding: 10px; margin-bottom: 8px; }
+  .storico-entry-top { display: flex; justify-content: space-between; margin-bottom: 4px; }
+  .storico-data { font-size: 11px; font-weight: 700; color: #4a6080; }
+  .storico-evento { font-size: 11px; font-weight: 700; color: #2f7ef5; }
+  .storico-detail { font-size: 12px; color: #5a7090; margin-bottom: 4px; }
+  .storico-meta { display: flex; gap: 12px; font-size: 11px; color: #7a90b0; flex-wrap: wrap; }
+  .storico-meta b { color: #4a6080; }
+
+  .btn-save { width: 100%; background: #2f7ef5; color: white; border: none; border-radius: 12px; padding: 14px; font-size: 15px; font-weight: 700; cursor: pointer; margin-top: 8px; transition: background .15s; }
+  .btn-save:hover { background: #1d6de8; }
+
+  .delete-section { margin-top: 24px; border-top: 1px solid #ffd0d0; padding-top: 16px; }
+  .delete-section-title { font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: #cc3030; margin-bottom: 10px; }
+  .btn-del-show { width: 100%; background: white; color: #cc3030; border: 1.5px solid #ffbbbb; border-radius: 10px; padding: 11px; font-size: 13px; font-weight: 600; cursor: pointer; }
+  .btn-del-show:hover { background: #fff0f0; }
+  .del-confirm-box { background: #fff0f0; border: 1.5px solid #ffbbbb; border-radius: 10px; padding: 14px; text-align: center; }
+  .del-confirm-text { font-size: 13px; color: #992020; font-weight: 600; margin-bottom: 12px; }
+  .del-confirm-btns { display: flex; gap: 8px; }
+  .btn-del-yes { flex: 1; background: #cc3030; color: white; border: none; border-radius: 8px; padding: 11px; font-size: 13px; font-weight: 700; cursor: pointer; }
+  .btn-del-no { flex: 1; background: white; color: #666; border: 1px solid #ddd; border-radius: 8px; padding: 11px; font-size: 13px; font-weight: 600; cursor: pointer; }
+
+  .spacer { height: 32px; }
+  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #1a2234; color: white; padding: 10px 20px; border-radius: 20px; font-size: 13px; font-weight: 600; z-index: 999; opacity: 0; transition: opacity .3s; pointer-events: none; white-space: nowrap; }
+  .toast.show { opacity: 1; }
+
+  .setup-box { margin: 40px 16px; background: white; border: 1px solid #e2e8f4; border-radius: 12px; padding: 20px; line-height: 1.6; }
+  .setup-box h2 { font-size: 16px; margin-bottom: 10px; color: #1a2234; }
+  .setup-box code { background: #f0f2f5; padding: 1px 5px; border-radius: 4px; font-size: 12px; }
+  .setup-box ol { margin: 10px 0 0 20px; }
+</style>
+</head>
+<body>
+
+<!--
+  ================================================================
+  CONFIGURAZIONE FIREBASE (da fare una sola volta, vedi README.md)
+  Sostituisci i valori sotto con quelli del tuo progetto Firebase.
+  ================================================================
+-->
+<script>
+  window.FIREBASE_CONFIG = {
+    apiKey: "INSERISCI_API_KEY",
+    authDomain: "INSERISCI_PROJECT.firebaseapp.com",
+    databaseURL: "https://INSERISCI_PROJECT-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "INSERISCI_PROJECT",
+    storageBucket: "INSERISCI_PROJECT.appspot.com",
+    messagingSenderId: "INSERISCI",
+    appId: "INSERISCI"
+  };
+</script>
+
+<div class="app" id="app"></div>
+<div class="toast" id="toast"></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+
+<script>
+const OPTIONS = {
+  agente: ["Arturo Fiore","Matteo Fiore","Carlo Fiore","Mimmo Turdo","Mario Galvagna","Altro Agente"],
+  ruoloReferente: ["Titolare","Responsabile punto vendita","Banconista","Commerciale interno","Responsabile tecnico","Buyer / ufficio acquisti","Installatore","Progettista","Altro"],
+  tipologiaCliente: ["Rivenditore materiale elettrico","Grossista","Installatore elettrico","Installatore fotovoltaico","Specialista fotovoltaico","Progettista","Cliente finale","Altro"],
+  modalitaPresentazione: ["Visita in sede cliente","Telefonata","WhatsApp","Email","Evento / presentazione","Passaggio rapido al banco","Altro"],
+  materialeMostrato: ["Scheda tecnica","Prezzo","Catalogo Finder","Foto prodotto","Esempio applicativo","Confronto con prodotto concorrente","Nessun materiale","Da inviare"],
+  lavoraConFV: ["Sì, molto","Sì, occasionalmente","Poco","No","Non sa / da verificare"],
+  haClientiInstallatoriFV: ["Sì, molti","Sì, alcuni","Pochi","No","Da verificare"],
+  tipologiaClientelaServita: ["Installatori elettrici","Installatori fotovoltaici","Imprese","Progettisti","Manutentori","Clienti finali","Industrie","Altro"],
+  potenziale: ["Alto","Medio","Basso","Nullo","Da verificare"],
+  interesseIniziale: ["Alto","Medio","Basso","Nullo","Da verificare"],
+  reazioneCliente: ["Interessato","Vuole prezzo","Vuole scheda tecnica","Vuole parlarne con installatori","Dice che non ha richieste","Non conosce bene l'applicazione","Tratta già prodotto concorrente","Ritiene il prodotto interessante ma non urgente","Non interessato","Da ricontattare"],
+  obiezionePrincipale: ["Prezzo","Non ha richieste al momento","Usa già altro prodotto","Non conosce il prodotto","Non tratta fotovoltaico","Deve confrontarsi con installatori","Deve verificare disponibilità / tempi","Non vede mercato","Nessuna obiezione","Da verificare"],
+  prodottoConcorrente: ["Non indicato","Non tratta concorrenti","Altro SPI concorrente","Da verificare"],
+  statoOpportunita: ["Da presentare","Presentato","Freddo","Aperto","In valutazione","Interessato","Convertito","Venduto","Cliente attivo","Perso","Da ricontattare"],
+  prioritaFollowUp: ["Alta","Media","Bassa","Nessuna","Da definire"],
+  prossimaAzione: ["Inviare scheda tecnica","Inviare prezzo","Inviare scheda + prezzo","Richiamare","Ripassare dal cliente","Parlare con referente tecnico","Capire installatori collegati","Proporre primo ordine","Proporre stock minimo","Nessuna azione","Da definire"],
+  quandoRicontattare: ["Entro 1 settimana","Tra 15 giorni","Tra 30 giorni","Al prossimo passaggio","Solo se richiama lui","Da definire"],
+  quantitaPotenziale: ["1-2 pezzi","3-5 pezzi","6-10 pezzi","10+ pezzi","Stock continuativo","Da verificare","Nessuna"],
+  tipoVendita: ["Nessuna vendita","Acquisto diretto cliente","Vendita a installatore","Vendita a cliente finale","Richiesta da installatore","Richiesta da progettista","Stock a magazzino","Da verificare"],
+  evoluzioneCliente: ["Nessuna evoluzione","Da freddo a interessato","Da interessato a venduto","Da venduto a cliente attivo","Ha chiesto ulteriori informazioni","Ha coinvolto installatore","Ha perso interesse","Da verificare"],
+  eventoStorico: ["Primo contatto","Prodotto presentato","Inviata scheda tecnica","Inviato prezzo","Cliente ricontattato","Cliente interessato","Cliente non interessato","Richiesta da installatore","Vendita effettuata","Riordino","Opportunità persa","Da ricontattare","Altro"],
+};
+const STATO_CLASS = {"Da presentare":"s-gray","Presentato":"s-blue","Freddo":"s-slate","Aperto":"s-cyan","In valutazione":"s-yellow","Interessato":"s-orange","Convertito":"s-purple","Venduto":"s-green","Cliente attivo":"s-green","Perso":"s-red","Da ricontattare":"s-amber"};
+
+const EMPTY = () => ({
+  ragioneSociale:"",sede:"",referente:"",ruoloReferente:"",tipologiaCliente:"",
+  agente:"",dataPresentazione:"",modalitaPresentazione:"",materialeMostrato:[],
+  lavoraConFV:"",haClientiInstallatoriFV:"",tipologiaClientelaServita:[],potenziale:"",
+  interesseIniziale:"",reazioneCliente:"",obiezionePrincipale:"",prodottoConcorrente:"",
+  statoOpportunita:"",prioritaFollowUp:"",prossimaAzione:"",quandoRicontattare:"",
+  quantitaVenduta:0,quantitaPotenziale:"",tipoVendita:"",evoluzioneCliente:"",
+  notaRapida:"",storico:[]
+});
+const EMPTY_STORICO = () => ({data:today(),evento:"",dettaglio:"",nuovoStato:"",prossimaAzione:""});
+
+let state = { view:"list", cards:[], form:EMPTY(), editId:null, search:"", storico:EMPTY_STORICO(), showDelConfirm:false, moreOpen:false, synced:false };
+
+// ---------- FIREBASE SYNC ----------
+let db = null;
+let cardsRef = null;
+function initFirebase() {
+  try {
+    if (!window.FIREBASE_CONFIG || window.FIREBASE_CONFIG.apiKey === "INSERISCI_API_KEY") {
+      state.synced = false;
+      renderSyncBar();
+      return;
+    }
+    firebase.initializeApp(window.FIREBASE_CONFIG);
+    db = firebase.database();
+    cardsRef = db.ref("finder7033_cards");
+    cardsRef.on("value", snap => {
+      const val = snap.val() || {};
+      state.cards = Object.values(val).sort((a,b) => (b.updatedAt||"").localeCompare(a.updatedAt||""));
+      state.synced = true;
+      render();
+    });
+  } catch(e) {
+    console.error(e);
+    state.synced = false;
+    renderSyncBar();
+  }
+}
+function pushCard(card) {
+  if (cardsRef) { cardsRef.child(card.id).set(card); }
+  else { saveLocal(); render(); }
+}
+function removeCard(id) {
+  if (cardsRef) { cardsRef.child(id).remove(); }
+  else { state.cards = state.cards.filter(c=>c.id!==id); saveLocal(); render(); }
+}
+function renderSyncBar() {
+  const el = document.getElementById('syncbar');
+  if (!el) return;
+  el.outerHTML = syncBarHtml();
+}
+function syncBarHtml() {
+  return state.synced
+    ? `<div id="syncbar" class="sync-bar sync-ok">🟢 Dati sincronizzati con il team</div>`
+    : `<div id="syncbar" class="sync-bar sync-off">🟠 Modalità locale — configura Firebase (vedi README.md) per condividere col team</div>`;
+}
+
+// ---------- LOCAL FALLBACK (solo se Firebase non configurato) ----------
+function loadLocal() { try { const raw = localStorage.getItem("finder7033_local"); if (raw) state.cards = JSON.parse(raw); } catch(e){} }
+function saveLocal() { try { localStorage.setItem("finder7033_local", JSON.stringify(state.cards)); } catch(e){} }
+
+function showToast(msg) { const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2200); }
+function today() { return new Date().toLocaleDateString('it-IT'); }
+
+function render() {
+  const app = document.getElementById('app');
+  app.innerHTML = state.view==="list" ? renderList() : renderForm();
+}
+
+function renderList() {
+  const q = state.search.toLowerCase();
+  const filtered = state.cards.filter(c => (c.ragioneSociale||"").toLowerCase().includes(q)||(c.referente||"").toLowerCase().includes(q)||(c.sede||"").toLowerCase().includes(q)||(c.agente||"").toLowerCase().includes(q));
+  return `
+  <div class="header">
+    <div class="header-left">
+      <div class="header-text">
+        <div class="header-title">70.33 — Schede cliente</div>
+        <div class="header-sub">${state.cards.length} ${state.cards.length===1?"scheda":"schede"}</div>
+      </div>
+    </div>
+    <button class="btn-new" onclick="newCard()">+ Nuova</button>
+  </div>
+  ${syncBarHtml()}
+  <div class="search-bar"><input type="text" placeholder="🔍  Cerca cliente, referente, sede, agente..." value="${esc(state.search)}" oninput="doSearch(this.value)" /></div>
+  <div class="card-list">
+    ${filtered.length===0 ? `<div class="empty-state">${state.cards.length===0?"Nessuna scheda ancora.<br>Crea la prima con <b>+ Nuova</b>":"Nessun risultato."}</div>` : filtered.map(c=>renderCardItem(c)).join("")}
+  </div>`;
+}
+
+function renderCardItem(c) {
+  const bc = STATO_CLASS[c.statoOpportunita]||"s-gray";
+  const pClass = c.prioritaFollowUp==="Alta"?"p-alta":c.prioritaFollowUp==="Media"?"p-media":c.prioritaFollowUp==="Bassa"?"p-bassa":"";
+  const pIcon = c.prioritaFollowUp==="Alta"?"↑↑ Alta":c.prioritaFollowUp==="Media"?"↑ Media":c.prioritaFollowUp==="Bassa"?"↓ Bassa":"";
+  const sub = [c.sede,c.referente].filter(Boolean).join(" · ");
+  return `<div class="card-item" onclick="editCard('${c.id}')">
+    <div class="card-item-top">
+      <div>
+        <div class="card-nome">${esc(c.ragioneSociale)||"—"}</div>
+        ${sub?`<div class="card-sub">${esc(sub)}</div>`:""}
+        ${c.tipologiaCliente?`<div class="card-tipo">${esc(c.tipologiaCliente)}</div>`:""}
+        ${c.agente?`<div class="card-agente">👤 ${esc(c.agente)}</div>`:""}
+      </div>
+      <div class="card-badges">
+        ${c.statoOpportunita?`<span class="badge ${bc}">${esc(c.statoOpportunita)}</span>`:""}
+        ${pClass?`<span class="${pClass}">${pIcon}</span>`:""}
+      </div>
+    </div>
+    ${c.prossimaAzione&&c.prossimaAzione!=="Nessuna azione"?`<div class="card-azione">→ ${esc(c.prossimaAzione)}</div>`:""}
+  </div>`;
+}
+
+function renderForm() {
+  const f = state.form;
+  const isEdit = !!state.editId;
+  const title = f.ragioneSociale||(isEdit?"Modifica scheda":"Nuova scheda");
+  return `
+  <div class="form-header">
+    <button class="btn-back" onclick="goList()">← Lista</button>
+    <div class="form-title">${esc(title)}</div>
+  </div>
+  <div class="form-body">
+
+    <div class="section-title">Dati principali</div>
+    ${inp("ragioneSociale","Ragione sociale","es. Elettrosud")}
+    ${inp("sede","Sede / punto vendita","es. Brolo")}
+    ${inp("referente","Referente","es. Franco")}
+    ${sel("ruoloReferente","Ruolo referente",OPTIONS.ruoloReferente)}
+    ${sel("tipologiaCliente","Tipologia cliente",OPTIONS.tipologiaCliente)}
+    ${sel("agente","Agente",OPTIONS.agente)}
+
+    <div class="section-title">Profilo &amp; reazione</div>
+    ${sel("lavoraConFV","Lavora con fotovoltaico?",OPTIONS.lavoraConFV)}
+    ${sel("potenziale","Potenziale sul prodotto",OPTIONS.potenziale)}
+    ${sel("interesseIniziale","Interesse iniziale",OPTIONS.interesseIniziale)}
+    ${sel("reazioneCliente","Reazione cliente",OPTIONS.reazioneCliente)}
+
+    <div class="section-title">Stato opportunità</div>
+    ${sel("statoOpportunita","Stato opportunità",OPTIONS.statoOpportunita)}
+    ${sel("prioritaFollowUp","Priorità follow-up",OPTIONS.prioritaFollowUp)}
+    ${sel("prossimaAzione","Prossima azione",OPTIONS.prossimaAzione)}
+
+    <div class="field"><label>Quantità venduta</label><input type="number" min="0" value="${f.quantitaVenduta||0}" onchange="setField('quantitaVenduta',parseInt(this.value)||0)" /></div>
+
+    <div class="field"><label>Nota rapida</label><textarea rows="2" placeholder="Max 1-2 righe. Solo info non coperte dalle tendine." onchange="setField('notaRapida',this.value)">${esc(f.notaRapida||"")}</textarea></div>
+
+    <button type="button" class="toggle-more" onclick="toggleMore()">${state.moreOpen?"▲ Nascondi altri campi":"▼ Mostra altri campi (presentazione, dettagli, vendite)"}</button>
+
+    <div class="more-fields ${state.moreOpen?"open":""}">
+      <div class="section-title">Presentazione prodotto</div>
+      <div class="field"><label>Prodotto presentato</label><div class="field-static">Finder 70.33</div></div>
+      ${inp("dataPresentazione","Data presentazione","",true)}
+      ${sel("modalitaPresentazione","Modalità presentazione",OPTIONS.modalitaPresentazione)}
+      ${multi("materialeMostrato","Materiale mostrato",OPTIONS.materialeMostrato)}
+
+      <div class="section-title">Dettagli profilo</div>
+      ${sel("haClientiInstallatoriFV","Ha clienti installatori FV?",OPTIONS.haClientiInstallatoriFV)}
+      ${multi("tipologiaClientelaServita","Tipo di clientela servita",OPTIONS.tipologiaClientelaServita)}
+      ${sel("obiezionePrincipale","Obiezione principale",OPTIONS.obiezionePrincipale)}
+      ${sel("prodottoConcorrente","Prodotto concorrente già trattato",OPTIONS.prodottoConcorrente)}
+      ${sel("quandoRicontattare","Quando ricontattare",OPTIONS.quandoRicontattare)}
+
+      <div class="section-title">Vendite / sviluppo</div>
+      ${sel("quantitaPotenziale","Quantità potenziale",OPTIONS.quantitaPotenziale)}
+      ${sel("tipoVendita","Tipo vendita",OPTIONS.tipoVendita)}
+      ${sel("evoluzioneCliente","Evoluzione cliente",OPTIONS.evoluzioneCliente)}
+    </div>
+
+    <div class="section-title">${isEdit?"Aggiungi al storico":"Prima riga storico"}</div>
+    <div class="storico-box">
+      <div class="storico-box-title">📌 ${isEdit?"Aggiungi voce (opzionale)":"Registra primo contatto (opzionale)"}</div>
+      <div class="field"><label>Data</label><input type="text" value="${esc(state.storico.data)}" onchange="setSt('data',this.value)" /></div>
+      <div class="field"><label>Evento</label><select onchange="setSt('evento',this.value)"><option value="">— seleziona —</option>${OPTIONS.eventoStorico.map(o=>`<option value="${o}" ${state.storico.evento===o?"selected":""}>${o}</option>`).join("")}</select></div>
+      <div class="field"><label>Dettaglio breve</label><input type="text" value="${esc(state.storico.dettaglio)}" onchange="setSt('dettaglio',this.value)" placeholder="es. Cliente senza richieste immediate" /></div>
+      <div class="field"><label>Nuovo stato opportunità</label><select onchange="setSt('nuovoStato',this.value)"><option value="">— seleziona —</option>${OPTIONS.statoOpportunita.map(o=>`<option value="${o}" ${state.storico.nuovoStato===o?"selected":""}>${o}</option>`).join("")}</select></div>
+      <div class="field"><label>Prossima azione</label><select onchange="setSt('prossimaAzione',this.value)"><option value="">— seleziona —</option>${OPTIONS.prossimaAzione.map(o=>`<option value="${o}" ${state.storico.prossimaAzione===o?"selected":""}>${o}</option>`).join("")}</select></div>
+    </div>
+
+    ${(f.storico||[]).length>0?`
+    <div class="section-title">Storico aggiornamenti</div>
+    ${[...(f.storico||[])].reverse().map(e=>`
+      <div class="storico-entry">
+        <div class="storico-entry-top"><span class="storico-data">${esc(e.data)}</span><span class="storico-evento">${esc(e.evento)}</span></div>
+        ${e.dettaglio?`<div class="storico-detail">${esc(e.dettaglio)}</div>`:""}
+        <div class="storico-meta">
+          ${e.nuovoStato?`<span>Stato: <b>${esc(e.nuovoStato)}</b></span>`:""}
+          ${e.prossimaAzione?`<span>→ ${esc(e.prossimaAzione)}</span>`:""}
+        </div>
+      </div>`).join("")}
+    `:""}
+
+    <button class="btn-save" onclick="saveCard()">${isEdit?"✅ Aggiorna scheda":"✅ Salva scheda"}</button>
+
+    ${isEdit?`
+    <div class="delete-section">
+      <div class="delete-section-title">⚠️ Zona pericolosa</div>
+      ${state.showDelConfirm?`
+      <div class="del-confirm-box">
+        <div class="del-confirm-text">Eliminare definitivamente questa scheda?</div>
+        <div class="del-confirm-btns">
+          <button class="btn-del-no" onclick="cancelDelete()">No, annulla</button>
+          <button class="btn-del-yes" onclick="confirmDelete()">Sì, elimina</button>
+        </div>
+      </div>`:`
+      <button class="btn-del-show" onclick="askDelete()">🗑️ Elimina questa scheda</button>`}
+    </div>`:""}
+
+    <div class="spacer"></div>
+  </div>`;
+}
+
+function inp(field,label,placeholder,isDate) {
+  const v=state.form[field]||"";
+  return `<div class="field"><label>${label}</label><input type="${isDate?'date':'text'}" value="${esc(v)}" placeholder="${esc(placeholder)}" oninput="setField('${field}',this.value)" onchange="setField('${field}',this.value)" /></div>`;
+}
+function sel(field,label,options) {
+  const v=state.form[field]||"";
+  return `<div class="field"><label>${label}</label><select onchange="setField('${field}',this.value)"><option value="">— seleziona —</option>${options.map(o=>`<option value="${o}" ${v===o?"selected":""}>${o}</option>`).join("")}</select></div>`;
+}
+function multi(field,label,options) {
+  const arr=state.form[field]||[];
+  return `<div class="field"><label>${label}</label><div class="multisel">${options.map(o=>`<button type="button" class="multisel-btn ${arr.includes(o)?"on":""}" onclick="toggleMulti('${field}','${o}')">${o}</button>`).join("")}</div></div>`;
+}
+function esc(s) { if(!s)return""; return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+
+function doSearch(v) { state.search=v; render(); }
+function newCard() { state.form=EMPTY(); state.editId=null; state.storico=EMPTY_STORICO(); state.showDelConfirm=false; state.moreOpen=false; state.view="form"; render(); }
+function editCard(id) { const c=state.cards.find(c=>c.id===id); if(!c)return; state.form=JSON.parse(JSON.stringify(c)); state.editId=id; state.storico=EMPTY_STORICO(); state.showDelConfirm=false; state.moreOpen=false; state.view="form"; render(); }
+function goList() { state.view="list"; render(); }
+function setField(field,value) { state.form[field]=value; }
+function toggleMulti(field,value) { const arr=state.form[field]||[]; state.form[field]=arr.includes(value)?arr.filter(v=>v!==value):[...arr,value]; render(); }
+function setSt(field,value) { state.storico[field]=value; }
+function toggleMore() { state.moreOpen=!state.moreOpen; render(); }
+
+function askDelete() { state.showDelConfirm=true; render(); }
+function cancelDelete() { state.showDelConfirm=false; render(); }
+function confirmDelete() {
+  removeCard(state.editId);
+  state.view="list"; state.editId=null; state.showDelConfirm=false;
+  showToast("🗑️ Scheda eliminata");
+  if (!cardsRef) render();
+}
+
+function saveCard() {
+  const f=state.form; const st=state.storico; const now=today();
+  if(!f.ragioneSociale.trim()){showToast("⚠️ Inserisci la ragione sociale");return;}
+  if(st.evento) f.storico=[...(f.storico||[]),{...st}];
+  if(state.editId) {
+    f.id = state.editId;
+    f.updatedAt=now;
+    showToast("✅ Scheda aggiornata");
+  } else {
+    f.id=Date.now().toString(); f.createdAt=now; f.updatedAt=now;
+    showToast("✅ Scheda salvata");
+  }
+  pushCard(f);
+  state.view="list"; state.editId=null;
+  if (!cardsRef) render();
+}
+
+// INIT
+loadLocal();
+initFirebase();
+render();
+</script>
+</body>
+</html>
